@@ -1,0 +1,49 @@
+# .github/workflows/deploy.yml
+# Déclenché à chaque push sur la branche "prod"
+
+name: 🚀 Deploy to production
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  deploy:
+    name: Deploy on self-hosted runner
+    runs-on: self-hosted          # ton runner installé sur le serveur DELL
+
+    steps:
+      # 1. Récupère le code le plus récent
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: prod
+
+      # 2. Copie les fichiers vers le répertoire de l'app
+      - name: Sync app files
+        run: |
+          rsync -av --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.env' \
+            $GITHUB_WORKSPACE/ /opt/myapp/
+
+      # 3. Rebuild et relance les conteneurs modifiés uniquement
+      - name: Build & restart containers
+        working-directory: /opt/myapp
+        run: |
+          docker compose pull --quiet
+          docker compose up -d --build --remove-orphans
+
+      # 4. Nettoie les anciennes images pour libérer de l'espace
+      - name: Prune unused Docker images
+        run: docker image prune -f
+
+      # 5. Vérifie que les conteneurs sont bien up
+      - name: Health check
+        run: |
+          sleep 5
+          docker compose -f /opt/myapp/docker-compose.yml ps
+          # Vérifie que nginx répond
+          curl -sf http://localhost/health || echo "⚠️ Health check échoué"
