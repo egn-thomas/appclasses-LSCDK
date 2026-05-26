@@ -1,49 +1,33 @@
-# .github/workflows/deploy.yml
-# Déclenché à chaque push sur la branche "prod"
-
-name: 🚀 Deploy to production
+name: Deploy Production
 
 on:
   push:
     branches:
-      - prod
+      - prod # Déclenche le déploiement uniquement lors d'un push sur 'prod'
 
 jobs:
   deploy:
-    name: Deploy on self-hosted runner
-    runs-on: self-hosted          # ton runner installé sur le serveur DELL
+    runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupère le code le plus récent
-      - name: Checkout code
+      - name: Checkout du code
         uses: actions/checkout@v4
+
+      - name: Déploiement via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          ref: prod
-
-      # 2. Copie les fichiers vers le répertoire de l'app
-      - name: Sync app files
-        run: |
-          rsync -av --delete \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='.env' \
-            $GITHUB_WORKSPACE/ /opt/myapp/
-
-      # 3. Rebuild et relance les conteneurs modifiés uniquement
-      - name: Build & restart containers
-        working-directory: /opt/myapp
-        run: |
-          docker compose pull --quiet
-          docker compose up -d --build --remove-orphans
-
-      # 4. Nettoie les anciennes images pour libérer de l'espace
-      - name: Prune unused Docker images
-        run: docker image prune -f
-
-      # 5. Vérifie que les conteneurs sont bien up
-      - name: Health check
-        run: |
-          sleep 5
-          docker compose -f /opt/myapp/docker-compose.yml ps
-          # Vérifie que nginx répond
-          curl -sf http://localhost/health || echo "⚠️ Health check échoué"
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22 # Ajustez le port si le SSH de votre Box/Meraki utilise un autre port externe
+          script: |
+            cd /opt/myapp
+            
+            # 1. Récupérer la mise à jour du code
+            git pull origin prod
+            
+            # 2. Reconstruire le conteneur PHP si vous avez modifié le Dockerfile ou des dépendances
+            sudo docker compose build php
+            
+            # 3. Relancer l'application sans coupure pour le reste du serveur
+            sudo docker compose up -d php
