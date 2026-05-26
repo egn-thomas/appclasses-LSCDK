@@ -19,7 +19,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22 # Ajustez le port si le SSH de votre Box/Meraki utilise un autre port externe
+          port: 2222 # Ajustez le port si le SSH de votre Box/Meraki utilise un autre port externe
           script: |
             cd /opt/myapp
             
