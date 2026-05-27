@@ -1,9 +1,9 @@
-name: Deploy Production
+name: Deploy Application
 
 on:
   push:
     branches:
-      - prod # Déclenche le déploiement uniquement lors d'un push sur 'prod'
+      - prod
 
 jobs:
   deploy:
@@ -13,21 +13,22 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v4
 
-      - name: Déploiement via SSH
+      - name: Déploiement applicatif via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22 # Ajustez le port si le SSH de votre Box/Meraki utilise un autre port externe
+          port: 2222
           script: |
-            cd /opt/myapp
-            
-            # 1. Récupérer la mise à jour du code
-            git pull origin prod
-            
-            # 2. Reconstruire le conteneur PHP si vous avez modifié le Dockerfile ou des dépendances
-            sudo docker compose build php
-            
-            # 3. Relancer l'application sans coupure pour le reste du serveur
-            sudo docker compose up -d php
+            cd /opt/appclasses-LSCDK
+
+            # 1. Récupérer le dernier code de l'app
+            sudo git pull origin prod
+
+            # 2. Reconstruire et relancer l'API et Mongo
+            sudo docker compose build api
+            sudo docker compose up -d api mongo
+
+            # 3. Mettre à jour Prisma dans le conteneur et exécuter le Seed
+            sudo docker compose exec -T api npx prisma db push
