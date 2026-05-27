@@ -1,53 +1,47 @@
 services:
-  # ─── FRONTEND PHP-FPM ────────────────────────────────────────────────────────
-  php-front:
-    image: php:8.2-fpm-alpine
-    container_name: myapp_front
+  mongo:
+    image: mongo:7
+    container_name: appclasses-mongo
     restart: unless-stopped
     ports:
-      - "127.0.0.1:9001:9000" # Le Nginx global enverra le trafic web ici
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-change_me_strong_password}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-appclasses}
     volumes:
-      - ./php-front:/var/www/html
-    networks:
-      - myapp_net
+      - mongo_data:/data/db
 
-  # ─── API Node.js & Prisma ───────────────────────────────────────────────────
   api:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: myapp_api
+    container_name: appclasses-api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:9002:3000" # Optionnel : si tu as besoin d'y accéder en direct via le proxy
-    volumes:
-      - ./api:/usr/src/app
-      - /usr/src/app/node_modules
+      - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD}@mongo:27017/${MONGO_DB:-myapp}?authSource=admin
+      NODE_ENV: development
+      PORT: 3000
+      MONGO_URI: ${MONGO_URI:-mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-change_me_strong_password}@mongo:27017/${MONGO_DB:-appclasses}?authSource=admin}
+      MONGO_DB: ${MONGO_DB:-appclasses}
     depends_on:
       - mongo
-    networks:
-      - myapp_net
 
-  # ─── Base de données MongoDB ──────────────────────────────────────────────────
-  mongo:
-    image: mongo:7
-    container_name: myapp_mongo
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: appclasses-php
     restart: unless-stopped
+    ports:
+      - "8080:80"
     volumes:
-      - mongo_data:/data/db
+      - ./php:/var/www/html
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Définir MONGO_PASSWORD dans .env}
-      MONGO_INITDB_DATABASE: ${MONGO_DB:-myapp}
-    networks:
-      - myapp_net
+      API_URL: ${API_URL:-http://localhost:3000}
+    depends_on:
+      - api
 
 volumes:
   mongo_data:
-
-networks:
-  myapp_net:
-    driver: bridge
