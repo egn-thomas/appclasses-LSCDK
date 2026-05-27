@@ -1,24 +1,17 @@
 # php/Dockerfile
-FROM php:8.3-fpm-alpine
+FROM php:8.3-apache
 
-# Dépendances système
-RUN apk add --no-cache \
-    autoconf \
-    g++ \
-    make \
-    openssl-dev \
-    pkgconfig
+# Installer les dépendances nécessaires pour l'extension MongoDB
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl-dev \
+    pkg-config \
+    unzip \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb \
+    && docker-php-ext-install opcache pdo \
+    && rm -rf /var/lib/apt/lists/*
 
-# Extension MongoDB (driver officiel PECL)
-RUN pecl install mongodb \
-    && docker-php-ext-enable mongodb
-
-# Extensions PHP utiles
-RUN docker-php-ext-install \
-    opcache \
-    pdo
-
-# Config PHP de prod
 COPY php.ini /usr/local/etc/php/conf.d/custom.ini
 
 WORKDIR /var/www/html
+EXPOSE 80
