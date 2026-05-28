@@ -27,8 +27,8 @@ jobs:
             git pull origin prod
 
             # 2. Reconstruire et relancer l'API et Mongo
-            docker compose build api
-            docker compose up -d api mongo
+            docker compose build api mongo php
+            docker compose up -d
 
             # 3. Mettre à jour Prisma dans le conteneur et exécuter le Seed
             docker compose exec -T api npx prisma db push

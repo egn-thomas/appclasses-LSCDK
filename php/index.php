@@ -32,6 +32,7 @@ $apiUrl = getenv('API_URL') ?: 'http://localhost:3000';
     <p>Front PHP connecté à l'API Node.js.</p>
     <button id="ping">Tester l'API</button>
     <div id="output"></div>
+    <p>Deploy automatique : OK</p>
 
     <script>
         const apiUrl = '<?php echo htmlspecialchars($apiUrl, ENT_QUOTES, 'UTF-8'); ?>';
