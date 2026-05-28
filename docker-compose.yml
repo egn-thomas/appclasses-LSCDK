@@ -18,8 +18,9 @@ services:
       dockerfile: Dockerfile
     container_name: appclasses-api
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    networks:
+      - default
+      - proxy-network
     environment:
       NODE_ENV: development
       PORT: 3000
@@ -40,9 +41,13 @@ services:
     volumes:
       - ./php:/var/www/html
     environment:
-      API_URL: ${API_URL:-http://localhost:3000}
+      API_URL: ${API_URL:-https://appclasses.lscdk.fr/api}
     depends_on:
       - api
 
 volumes:
   mongo_data:
+  
+networks:
+  proxy-network:
+    external: true
