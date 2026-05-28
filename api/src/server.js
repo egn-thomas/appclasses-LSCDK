@@ -1,7 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const cookieParser = require("cookie-parser");
 const routes = require("./routes/classRoutes");
+const authRoutes = require("./routes/authRoutes");
+const { requireAuth } = require("./middleware/authMiddleware");
+const User = require("./models/User");
+const bcrypt = require("bcrypt");
 require("dotenv").config();
 
 const app = express();
@@ -10,9 +17,34 @@ const MONGO_URI =
   process.env.MONGO_URI ||
   `mongodb://${process.env.MONGO_USER || "admin"}:${process.env.MONGO_PASSWORD || "change_me_strong_password"}@mongo:27017/${process.env.MONGO_DB || "appclasses"}?authSource=admin`;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONT_URL || "http://localhost",
+    credentials: true,
+  }),
+);
 app.use(express.json());
-app.use("/api", routes);
+app.use(cookieParser());
+
+app.use(
+  session({
+    name: "connect.sid",
+    secret: process.env.SESSION_SECRET || "replace_this_with_env_secret",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: MONGO_URI }),
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+    },
+  }),
+);
+
+app.use("/api/auth", authRoutes);
+// Protect all other API routes
+app.use("/api", requireAuth, routes);
 
 app.get("/", (req, res) => {
   res.json({ service: "appclasses-api", status: "running" });
@@ -23,10 +55,21 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => {
+  .then(async () => {
     console.log("✅ MongoDB connecté");
-    app.listen(PORT, () => {
-      console.log(`🚀 API démarrée sur http://localhost:${PORT}`);
+
+    // Create initial admin user if none
+    const usersCount = await User.countDocuments();
+    if (usersCount === 0) {
+      const adminUser = process.env.ADMIN_USERNAME || "admin";
+      const adminPass = process.env.ADMIN_PASSWORD || "adminpass";
+      const hash = await bcrypt.hash(adminPass, 10);
+      await User.create({ username: adminUser, password: hash, role: "admin" });
+      console.log(`⚙️ Admin créé: ${adminUser} (change ADMIN_PASSWORD env)`);
+    }
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 API démarrée sur http://0.0.0.0:${PORT}`);
     });
   })
   .catch((error) => {
