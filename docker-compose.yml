@@ -20,6 +20,9 @@ services:
     restart: unless-stopped
     ports:
       - "${API_PORT}:3000"
+    networks:
+      - default
+      - proxy-network
     environment:
       NODE_ENV: ${NODE_ENV}
       PORT: ${API_PORT}
@@ -50,3 +53,7 @@ services:
 
 volumes:
   mongo_data:
+  
+networks:
+  proxy-network:
+    external: true
