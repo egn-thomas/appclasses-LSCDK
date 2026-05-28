@@ -17,10 +17,16 @@ Une application de gestion de classes scolaires pour l'ensemble scolaire LaSalle
 
 1. Copier `.env.example` en `.env`
 2. Modifier les valeurs si nécessaire
-3. Lancer :
+3. Lancer pour la production/staging :
 
 ```bash
 docker compose up --build
+```
+
+Lancer pour le développement local :
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 Si un MongoDB local est déjà actif sur `27017`, le service du conteneur est exposé sur `27018` pour éviter le conflit.
@@ -41,3 +47,4 @@ Si un MongoDB local est déjà actif sur `27017`, le service du conteneur est ex
 
 - API : modifier les fichiers dans `api/src`
 - Frontend : modifier `php/index.php`
+- Pour du dev local avec live reload et un réseau Docker simplifié, utilisez `docker-compose.dev.yml`.
