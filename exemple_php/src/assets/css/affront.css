@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+:root {
+    --primary: #ff4c00;
+    --intermediate: #ff9500;
+    --secondary: #ffb60b;
+    --verydark: #1e1e1e;
+    --dark: #393939;
+    --grey: #565656;
+    --lightgrey: #b0b0b0;
+    --light: #efefef;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--grey);
+    color: var(--text-color);
+    margin: 0;
+    /* On enlève display: flex, justify-content, etc. ils sont gérés dans style.css */
+    padding: 20px;
+    padding-top: 120px;
+    /* Offset pour la nav fixe, pour être sûr */
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    /* Centrer horizontalement */
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Sections */
+.search-section,
+.stats-section {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.search-section p {
+    text-align: center;
+    font-size: 1.1em;
+    margin-bottom: 25px;
+}
+
+/* Formulaire de recherche */
+.search-form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
+    /* Permet au groupe de prendre l'espace disponible */
+}
+
+.player-input {
+    flex: 1;
+    /* Chaque input prend la moitié de l'espace */
+    padding: 12px 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.player-input::placeholder {
+    color: rgba(224, 224, 224, 0.6);
+}
+
+.player-input:focus {
+    border-color: var(--highlight-color);
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.4);
+    outline: none;
+}
+
+.vs-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--highlight-color);
+}
+
+.btn-compare {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    height: 48px;
+    /* Assure la même hauteur que les inputs */
+    width: 48px;
+}
+
+.btn-compare svg {
+    margin: 0;
+}
+
+.btn-compare:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-2px);
+}
+
+/* Séparateur */
+.separator {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 30px 0;
+}
+
+/* Section des statistiques */
+.stats-section h2 {
+    text-align: center;
+    font-size: 1.8em;
+    margin-bottom: 30px;
+    color: var(--text-color);
+}
+
+.stats-section h2 .player-name {
+    color: var(--highlight-color);
+    /* Nom du joueur en couleur */
+}
+
+.highlight {
+    color: var(--highlight-color);
+    font-weight: bold;
+}
+
+.card {
+    background-color: var(--input-bg);
+    /* Couleur légèrement plus foncée pour les cartes de graphiques */
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Centrer le contenu verticalement */
+}
+
+.main-chart-container {
+    max-width: 400px;
+    /* Limiter la taille du camembert principal */
+    margin: 0 auto 30px auto;
+    /* Centrer et espacer */
+    aspect-ratio: 1 / 1;
+    /* Garder un ratio carré pour le camembert */
+}
+
+.secondary-charts {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+    /* Permet aux cartes de passer à la ligne sur petits écrans */
+    justify-content: center;
+    /* Centre les cartes horizontalement */
+}
+
+.secondary-charts .card {
+    flex: 1;
+    /* Permet aux cartes de prendre l'espace disponible */
+    min-width: 300px;
+    /* Largeur minimale pour éviter qu'elles ne soient trop petites */
+    padding-bottom: 15px;
+    /* Moins de padding en bas pour le titre */
+}
+
+.secondary-charts .card canvas {
+    max-height: 250px;
+    /* Limiter la hauteur des petits graphiques */
+    width: 100% !important;
+    /* Pour que Chart.js ne force pas de largeur */
+    height: auto !important;
+    /* Pour que Chart.js ne force pas de hauteur */
+}
+
+.chart-title {
+    margin-top: 15px;
+    font-size: 1em;
+    text-align: center;
+    color: var(--text-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .search-form {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .input-group {
+        width: 100%;
+        flex-direction: row;
+        /* Garde les inputs côte à côte mais sur une nouvelle ligne */
+    }
+
+    .btn-compare {
+        width: 100%;
+        height: auto;
+        padding: 12px 15px;
+    }
+
+    .secondary-charts .card {
+        min-width: unset;
+        /* Supprime la min-width pour flexibilité */
+        width: 100%;
+        /* Prend toute la largeur disponible */
+    }
+}

@@ -4,11 +4,11 @@ services:
     container_name: appclasses-mongo
     restart: unless-stopped
     ports:
-      - "27018:27017"
+      - "${MONGO_PORT}:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-change_me_strong_password}
-      MONGO_INITDB_DATABASE: ${MONGO_DB:-appclasses}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
     volumes:
       - mongo_data:/data/db
 
@@ -18,15 +18,21 @@ services:
       dockerfile: Dockerfile
     container_name: appclasses-api
     restart: unless-stopped
+    ports:
+      - "${API_PORT}:3000"
     networks:
       - default
       - proxy-network
     environment:
-      NODE_ENV: development
-      PORT: 3000
-      MONGO_URI: ${MONGO_URI:-mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-change_me_strong_password}@mongo:27017/${MONGO_DB:-appclasses}?authSource=admin}
-      MONGO_DB: ${MONGO_DB:-appclasses}
-      DATABASE_URL: ${MONGO_URI:-mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-change_me_strong_password}@mongo:27017/${MONGO_DB:-appclasses}?authSource=admin}
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${API_PORT}
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DB: ${MONGO_DB}
+      DATABASE_URL: ${DATABASE_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      FRONT_URL: ${FRONT_URL}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     depends_on:
       - mongo
 
@@ -37,11 +43,11 @@ services:
     container_name: appclasses-php
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "${PHP_PORT}:80"
     volumes:
       - ./php:/var/www/html
     environment:
-      API_URL: ${API_URL:-https://appclasses.lscdk.fr/api}
+      API_URL: ${API_URL}
     depends_on:
       - api
 
