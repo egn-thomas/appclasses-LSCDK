@@ -6,6 +6,7 @@ const MongoStore = require("connect-mongo");
 const cookieParser = require("cookie-parser");
 const routes = require("./routes/classRoutes");
 const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 const { requireAuth } = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const bcrypt = require("bcrypt");
@@ -35,7 +36,7 @@ app.use(
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
       httpOnly: true,
-      secure: false,           // PHP appelle l'API en HTTP interne, pas HTTPS
+      secure: false, // PHP appelle l'API en HTTP interne, pas HTTPS
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24,
     },
@@ -43,6 +44,7 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", requireAuth, userRoutes);
 // Protect all other API routes
 app.use("/api", requireAuth, routes);
 
@@ -64,7 +66,11 @@ mongoose
       const adminUser = process.env.ADMIN_USERNAME || "admin";
       const adminPass = process.env.ADMIN_PASSWORD || "adminpass";
       const hash = await bcrypt.hash(adminPass, 10);
-      await User.create({ username: adminUser, password: hash, role: "admin" });
+      await User.create({
+        username: adminUser,
+        password: hash,
+        role: "Administrateur",
+      });
       console.log(`⚙️ Admin créé: ${adminUser} (change ADMIN_PASSWORD env)`);
     }
 
@@ -76,10 +82,10 @@ mongoose
     console.error("❌ Erreur de connexion MongoDB", error);
     process.exit(1);
   });
-  
+
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-    console.log('  cookies:', req.cookies);
-    console.log('  session:', req.session);
-    next();
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log("  cookies:", req.cookies);
+  console.log("  session:", req.session);
+  next();
 });

@@ -81,9 +81,13 @@ if ($page === 'login') {
     $pageTitle = 'Connexion';
 } elseif ($page === 'dashboard') {
     $pageTitle = 'Dashboard';
+} elseif ($page === 'users') {
+    $pageTitle = 'Gestion des Utilisateurs';
 } else {
     $pageTitle = 'Page introuvable';
 }
+
+debug_log('PAGE_DEBUG', ['page_var' => $page, 'page_title' => $pageTitle]);
 
 require __DIR__ . '/includes/head.php';
 if ($authenticated) {
@@ -101,6 +105,11 @@ switch ($page) {
     case 'dashboard':
         $title = 'Dashboard';
         require __DIR__ . '/pages/dashboard.php';
+        break;
+
+    case 'users':
+        $title = 'Gestion des Utilisateurs';
+        require __DIR__ . '/pages/users.php';
         break;
 
     default:
