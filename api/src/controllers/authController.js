@@ -17,9 +17,13 @@ async function login(req, res) {
   req.session.username = user.username;
   req.session.role = user.role;
 
-  res.json({
-    ok: true,
-    user: { id: req.session.userId, username: user.username, role: user.role },
+  // forcer la sauvegarde avant de répondre
+  req.session.save((err) => {
+    if (err) return res.status(500).json({ error: "Session save failed" });
+    res.json({
+      ok: true,
+      user: { id: req.session.userId, username: user.username, role: user.role },
+    });
   });
 }
 

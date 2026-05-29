@@ -49,15 +49,26 @@ if ($page === 'login' && $authenticated) {
     redirect('/?page=dashboard');
 }
 
+debug_log('ALL_COOKIES_PHP', $_COOKIE);
+debug_log('HTTP_COOKIE_HEADER', $_SERVER['HTTP_COOKIE'] ?? 'none');
+
 // PROCESS ALL POST REQUESTS AND REDIRECTS BEFORE SENDING HTML
 if ($page === 'login') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $values['username'] = $_POST['username'] ?? '';
         $values['password'] = $_POST['password'] ?? '';
-        $resp = api_request('POST', '/api/auth/login', ['username' => $values['username'], 'password' => $values['password']]);
+        $resp = api_request('POST', '/api/auth/login', [
+            'username' => $values['username'],
+            'password' => $values['password']
+        ]);
         if ($resp['status'] === 200) {
             foreach ($resp['set_cookie'] as $sc) {
                 header('Set-Cookie: ' . $sc, false);
+                // ✅ FIX: mettre à jour $_COOKIE localement
+                if (preg_match('/^connect\.sid=([^;]+)/', $sc, $m)) {
+                    $_COOKIE['connect.sid'] = $m[1];
+                    $_SERVER['HTTP_COOKIE'] = 'connect.sid=' . $m[1];
+                }
             }
             redirect('/?page=dashboard');
         }

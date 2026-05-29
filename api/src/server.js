@@ -35,9 +35,9 @@ app.use(
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,           // PHP appelle l'API en HTTP interne, pas HTTPS
       sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      maxAge: 1000 * 60 * 60 * 24,
     },
   }),
 );
@@ -76,3 +76,10 @@ mongoose
     console.error("❌ Erreur de connexion MongoDB", error);
     process.exit(1);
   });
+  
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    console.log('  cookies:', req.cookies);
+    console.log('  session:', req.session);
+    next();
+});
