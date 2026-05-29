@@ -24,6 +24,7 @@ if ($resp['status'] === 200) {
 }
 
 // Traiter les formulaires
+$redirectTo = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'create') {
@@ -34,16 +35,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$username || !$password) {
                 $error = 'Le nom d\'utilisateur et le mot de passe sont requis';
             } else {
-                $payload = json_encode([
+                $payload = [
                     'username' => $username,
                     'password' => $password,
                     'role' => $role,
-                ]);
+                ];
                 $resp = api_request('POST', '/api/users', $payload);
                 if ($resp['status'] === 201) {
                     $success = 'Utilisateur créé avec succès';
-                    // Recharger la page
-                    redirect('/?page=users&success=1');
+                    $_GET['success'] = '1';
+                    // Refresh user list
+                    $resp = api_request('GET', '/api/users');
+                    if ($resp['status'] === 200) {
+                        $data = json_decode($resp['body'], true);
+                        $users = $data['users'] ?? [];
+                    }
                 } else {
                     $respData = json_decode($resp['body'], true);
                     $error = $respData['error'] ?? 'Erreur lors de la création';
@@ -53,20 +59,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userId = $_POST['user_id'] ?? '';
             $role = $_POST['role'] ?? '';
             $password = $_POST['password'] ?? '';
-            
+
             $payload = ['role' => $role];
             if ($password) {
                 $payload['password'] = $password;
             }
-            
-            $resp = api_request('PUT', '/api/users/' . $userId, json_encode($payload));
+
+            $resp = api_request('PUT', '/api/users/' . $userId, $payload);
             if ($resp['status'] === 200) {
                 $success = 'Utilisateur mis à jour avec succès';
-                redirect('/?page=users&success=1');
+                $_GET['success'] = '1';
+                // Refresh user list
+                $resp = api_request('GET', '/api/users');
+                if ($resp['status'] === 200) {
+                    $data = json_decode($resp['body'], true);
+                    $users = $data['users'] ?? [];
+                }
             } else {
                 $respData = json_decode($resp['body'], true);
                 $error = $respData['error'] ?? 'Erreur lors de la mise à jour';
             }
+        } elseif ($_POST['action'] === 'delete') {
+            $userId = $_POST['user_id'] ?? '';
+            $resp = api_request('DELETE', '/api/users/' . $userId);
+            if ($resp['status'] === 200) {
+                $success = 'Utilisateur supprimé avec succès';
+                $_GET['success'] = '1';
+                // Refresh user list
+                $resp = api_request('GET', '/api/users');
+                if ($resp['status'] === 200) {
+                    $data = json_decode($resp['body'], true);
+                    $users = $data['users'] ?? [];
+                }
+            } else {
+                $respData = json_decode($resp['body'], true);
+                $error = $respData['error'] ?? 'Erreur lors de la suppression';
+            }
+        }
+    }
+}
+?>
+
+<div class="page-content">
+    <?php if ($error): ?>
         <div class="alert alert-error">
             <?php echo htmlspecialchars($error); ?>
         </div>
@@ -76,6 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="alert alert-success">
             <?php echo htmlspecialchars($success); ?>
         </div>
+        <script>
+            setTimeout(() => {
+                location.href = '/?page=users';
+            }, 1500);
+        </script>
     <?php endif; ?>
 
     <!-- Formulaire d'ajout d'utilisateur -->
@@ -95,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="role">Rôle:</label>
                 <select id="role" name="role">
                     <option value="Lecteur">Lecteur</option>
-                    <option value="Editeur">Editeur</option>
+                    <option value="Editeur">Éditeur</option>
                     <option value="Administrateur">Administrateur</option>
                 </select>
             </div>
@@ -168,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="editRole">Rôle:</label>
                     <select id="editRole" name="role">
                         <option value="Lecteur">Lecteur</option>
-                        <option value="Editeur">Editeur</option>
+                        <option value="Editeur">Éditeur</option>
                         <option value="Administrateur">Administrateur</option>
                     </select>
                 </div>
@@ -190,6 +230,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
+    }
+
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
     }
 
     .users-form {
@@ -223,6 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         border: 1px solid #ddd;
         border-radius: 4px;
         font-size: 14px;
+        box-sizing: border-box;
     }
 
     .users-table {
@@ -299,7 +358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .btn-compact {
-        padding: 5px 10px;
+        padding: 6px 12px;
         font-size: 12px;
     }
 
@@ -312,29 +371,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         width: 100%;
         height: 100%;
         background-color: rgba(0, 0, 0, 0.5);
-        animation: fadeIn 0.2s;
     }
 
     .modal.hidden {
         display: none;
     }
 
+    .modal:not(.hidden) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .modal-content {
         background-color: white;
-        margin: 5% auto;
-        padding: 0;
-        border: 1px solid #888;
-        width: 500px;
+        padding: 20px;
         border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .modal-header {
-        padding: 20px;
-        border-bottom: 1px solid #eee;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 20px;
     }
 
     .modal-header h2 {
@@ -344,50 +406,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .btn-close {
         background: none;
         border: none;
-        font-size: 28px;
+        font-size: 24px;
         cursor: pointer;
         color: #999;
     }
 
+    .btn-close:hover {
+        color: #333;
+    }
+
     .modal-footer {
-        padding: 20px;
-        border-top: 1px solid #eee;
         display: flex;
         justify-content: flex-end;
         gap: 10px;
-    }
-
-    .alert {
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-    }
-
-    .alert-error {
-        background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
-        color: #721c24;
-    }
-
-    .alert-success {
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
-        color: #155724;
-    }
-
-    @media (max-width: 768px) {
-        .modal-content {
-            width: 90%;
-        }
-
-        .table {
-            font-size: 14px;
-        }
-
-        .table th,
-        .table td {
-            padding: 8px 10px;
-        }
+        margin-top: 20px;
     }
 </style>
 
@@ -413,4 +445,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     };
 </script>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>
