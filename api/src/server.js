@@ -4,9 +4,10 @@ const cors = require("cors");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const cookieParser = require("cookie-parser");
-const routes = require("./routes/classRoutes");
+const classRoutes = require("./routes/classRoutes");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const optionRoutes = require("./routes/optionRoutes");
 const { requireAuth } = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const bcrypt = require("bcrypt");
@@ -45,8 +46,8 @@ app.use(
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", requireAuth, userRoutes);
-// Protect all other API routes
-app.use("/api", requireAuth, routes);
+app.use("/api/classes", requireAuth, classRoutes);
+app.use("/api/options", requireAuth, optionRoutes);
 
 app.get("/", (req, res) => {
   res.json({ service: "appclasses-api", status: "running" });

@@ -15,6 +15,10 @@ if ($userResponse['status'] === 200) {
     <?php if ($userRole === 'Administrateur'): ?>
         <a class="nav-link" href="/?page=users">Utilisateurs</a>
     <?php endif; ?>
+    <?php if (in_array($userRole, ['Administrateur', 'Editeur'])): ?>
+        <a class="nav-link" href="/?page=classes">Classes</a>
+        <a class="nav-link" href="/?page=options">Options</a>
+    <?php endif; ?>
     <form class="inline-form" method="POST" action="/?page=logout">
         <button class="btn secondary btn-compact" type="submit">Se déconnecter</button>
     </form>
