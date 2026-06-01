@@ -1,14 +1,22 @@
 const express = require("express");
+const router = express.Router();
+const { requireRole } = require("../middleware/authMiddleware");
 const {
-  getHealth,
-  getClasses,
+  getAllClasses,
+  getClassById,
   createClass,
+  updateClass,
+  deleteClass,
 } = require("../controllers/classController");
 
-const router = express.Router();
+// Protéger toutes les routes classes avec les rôles Administrateur et Éditeur
+router.use(requireRole(["Administrateur", "Editeur"]));
 
-router.get("/health", getHealth);
-router.get("/classes", getClasses);
-router.post("/classes", createClass);
+// Endpoints
+router.get("/", getAllClasses);
+router.get("/:id", getClassById);
+router.post("/", createClass);
+router.put("/:id", updateClass);
+router.delete("/:id", deleteClass);
 
 module.exports = router;

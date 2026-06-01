@@ -1,54 +1,46 @@
 <?php
-// Vérifier que l'utilisateur est admin
+// Vérifier que l'utilisateur est admin ou éditeur
 $userResponse = api_request('GET', '/api/auth/me');
 if ($userResponse['status'] !== 200) {
     redirect('/?page=login');
 }
 $userData = json_decode($userResponse['body'], true);
-if ($userData['user']['role'] !== 'Administrateur') {
+if (!in_array($userData['user']['role'], ['Administrateur', 'Editeur'])) {
     redirect('/?page=dashboard');
 }
 
 $error = '';
 $success = '';
-$users = [];
+$classes = [];
 
-// Récupérer la liste des utilisateurs
-$resp = api_request('GET', '/api/users');
-debug_log('USERS_API_RESPONSE', ['status' => $resp['status'], 'body' => $resp['body']]);
+// Récupérer la liste des classes
+$resp = api_request('GET', '/api/classes');
 if ($resp['status'] === 200) {
     $data = json_decode($resp['body'], true);
-    $users = $data['users'] ?? [];
+    $classes = $data['classes'] ?? [];
 } else {
-    $error = 'Erreur lors du chargement des utilisateurs (Status: ' . $resp['status'] . ')';
+    $error = 'Erreur lors du chargement des classes (Status: ' . $resp['status'] . ')';
 }
 
 // Traiter les formulaires
-$redirectTo = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'create') {
-            $username = $_POST['username'] ?? '';
-            $password = $_POST['password'] ?? '';
-            $role = $_POST['role'] ?? 'Lecteur';
+            $name = $_POST['name'] ?? '';
 
-            if (!$username || !$password) {
-                $error = 'Le nom d\'utilisateur et le mot de passe sont requis';
+            if (!$name) {
+                $error = 'Le nom de la classe est requis';
             } else {
-                $payload = [
-                    'username' => $username,
-                    'password' => $password,
-                    'role' => $role,
-                ];
-                $resp = api_request('POST', '/api/users', $payload);
+                $payload = ['name' => $name];
+                $resp = api_request('POST', '/api/classes', $payload);
                 if ($resp['status'] === 201) {
-                    $success = 'Utilisateur créé avec succès';
+                    $success = 'Classe créée avec succès';
                     $_GET['success'] = '1';
-                    // Refresh user list
-                    $resp = api_request('GET', '/api/users');
+                    // Refresh class list
+                    $resp = api_request('GET', '/api/classes');
                     if ($resp['status'] === 200) {
                         $data = json_decode($resp['body'], true);
-                        $users = $data['users'] ?? [];
+                        $classes = $data['classes'] ?? [];
                     }
                 } else {
                     $respData = json_decode($resp['body'], true);
@@ -56,40 +48,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } elseif ($_POST['action'] === 'update') {
-            $userId = $_POST['user_id'] ?? '';
-            $role = $_POST['role'] ?? '';
-            $password = $_POST['password'] ?? '';
+            $classId = $_POST['class_id'] ?? '';
+            $name = $_POST['name'] ?? '';
 
-            $payload = ['role' => $role];
-            if ($password) {
-                $payload['password'] = $password;
-            }
-
-            $resp = api_request('PUT', '/api/users/' . $userId, $payload);
-            if ($resp['status'] === 200) {
-                $success = 'Utilisateur mis à jour avec succès';
-                $_GET['success'] = '1';
-                // Refresh user list
-                $resp = api_request('GET', '/api/users');
-                if ($resp['status'] === 200) {
-                    $data = json_decode($resp['body'], true);
-                    $users = $data['users'] ?? [];
-                }
+            if (!$name) {
+                $error = 'Le nom de la classe est requis';
             } else {
-                $respData = json_decode($resp['body'], true);
-                $error = $respData['error'] ?? 'Erreur lors de la mise à jour';
+                $payload = ['name' => $name];
+                $resp = api_request('PUT', '/api/classes/' . $classId, $payload);
+                if ($resp['status'] === 200) {
+                    $success = 'Classe mise à jour avec succès';
+                    $_GET['success'] = '1';
+                    // Refresh class list
+                    $resp = api_request('GET', '/api/classes');
+                    if ($resp['status'] === 200) {
+                        $data = json_decode($resp['body'], true);
+                        $classes = $data['classes'] ?? [];
+                    }
+                } else {
+                    $respData = json_decode($resp['body'], true);
+                    $error = $respData['error'] ?? 'Erreur lors de la mise à jour';
+                }
             }
         } elseif ($_POST['action'] === 'delete') {
-            $userId = $_POST['user_id'] ?? '';
-            $resp = api_request('DELETE', '/api/users/' . $userId);
+            $classId = $_POST['class_id'] ?? '';
+            $resp = api_request('DELETE', '/api/classes/' . $classId);
             if ($resp['status'] === 200) {
-                $success = 'Utilisateur supprimé avec succès';
+                $success = 'Classe supprimée avec succès';
                 $_GET['success'] = '1';
-                // Refresh user list
-                $resp = api_request('GET', '/api/users');
+                // Refresh class list
+                $resp = api_request('GET', '/api/classes');
                 if ($resp['status'] === 200) {
                     $data = json_decode($resp['body'], true);
-                    $users = $data['users'] ?? [];
+                    $classes = $data['classes'] ?? [];
                 }
             } else {
                 $respData = json_decode($resp['body'], true);
@@ -113,46 +104,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <script>
             setTimeout(() => {
-                location.href = '/?page=users';
+                location.href = '/?page=classes';
             }, 1500);
         </script>
     <?php endif; ?>
 
-    <!-- Tableau des utilisateurs -->
-    <section class="users-table">
-        <h2>Liste des utilisateurs</h2>
-        <?php if (empty($users)): ?>
-            <p>Aucun utilisateur trouvé.</p>
+    <!-- Tableau des classes -->
+    <section class="classes-table">
+        <h2>Liste des classes</h2>
+        <?php if (empty($classes)): ?>
+            <p>Aucune classe trouvée.</p>
         <?php else: ?>
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Nom d'utilisateur</th>
-                        <th>Rôle</th>
+                        <th>Nom de la classe</th>
                         <th>Date de création</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($users as $user): ?>
+                    <?php foreach ($classes as $class): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($user['username']); ?></td>
-                            <td><?php echo htmlspecialchars($user['role']); ?></td>
+                            <td><?php echo htmlspecialchars($class['name']); ?></td>
                             <td>
                                 <?php
-                                $createdAt = new DateTime($user['createdAt']);
+                                $createdAt = new DateTime($class['createdAt']);
                                 echo $createdAt->format('d/m/Y H:i');
                                 ?>
                             </td>
                             <td>
                                 <button type="button" class="btn secondary btn-compact"
-                                    onclick="openEditModal('<?php echo htmlspecialchars($user['_id']); ?>', '<?php echo htmlspecialchars($user['username']); ?>', '<?php echo htmlspecialchars($user['role']); ?>')">
+                                    onclick="openEditModal('<?php echo htmlspecialchars($class['_id']); ?>', '<?php echo htmlspecialchars($class['name']); ?>')">
                                     Éditer
                                 </button>
                                 <form method="POST" action="" style="display: inline;"
-                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette classe ?');">
                                     <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user['_id']); ?>">
+                                    <input type="hidden" name="class_id" value="<?php echo htmlspecialchars($class['_id']); ?>">
                                     <button type="submit" class="btn danger btn-compact">Supprimer</button>
                                 </form>
                             </td>
@@ -163,28 +152,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
     </section>
 
-    <!-- Formulaire d'ajout d'utilisateur -->
-    <section class="users-form">
-        <h2>Ajouter un nouvel utilisateur</h2>
+    <!-- Formulaire d'ajout de classe -->
+    <section class="classes-form">
+        <h2>Ajouter une nouvelle classe</h2>
         <form method="POST" action="">
             <input type="hidden" name="action" value="create">
             <div class="form-group">
-                <label for="username">Nom d'utilisateur:</label>
-                <input type="text" id="username" name="username" required>
+                <label for="name">Nom de la classe:</label>
+                <input type="text" id="name" name="name" required>
             </div>
-            <div class="form-group">
-                <label for="password">Mot de passe:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <div class="form-group">
-                <label for="role">Rôle:</label>
-                <select id="role" name="role">
-                    <option value="Lecteur">Lecteur</option>
-                    <option value="Editeur">Éditeur</option>
-                    <option value="Administrateur">Administrateur</option>
-                </select>
-            </div>
-            <button type="submit" class="btn primary">Ajouter l'utilisateur</button>
+            <button type="submit" class="btn primary">Ajouter la classe</button>
         </form>
     </section>
 </div>
@@ -193,28 +170,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div id="editModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Éditer l'utilisateur</h2>
+            <h2>Éditer la classe</h2>
             <button type="button" class="btn-close" onclick="closeEditModal()">×</button>
         </div>
         <form id="editForm" method="POST" action="">
             <div style="padding: 20px;">
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" id="editUserId" name="user_id">
+                <input type="hidden" id="editClassId" name="class_id">
                 <div class="form-group">
-                    <label for="editUsername">Nom d'utilisateur:</label>
-                    <input type="text" id="editUsername" name="username" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="editRole">Rôle:</label>
-                    <select id="editRole" name="role">
-                        <option value="Lecteur">Lecteur</option>
-                        <option value="Editeur">Éditeur</option>
-                        <option value="Administrateur">Administrateur</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="editPassword">Nouveau mot de passe (laisser vide pour ne pas changer):</label>
-                    <input type="password" id="editPassword" name="password">
+                    <label for="editName">Nom de la classe:</label>
+                    <input type="text" id="editName" name="name" required>
                 </div>
             </div>
             <div class="modal-footer">
@@ -250,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         border: 1px solid #c3e6cb;
     }
 
-    .users-form {
+    .classes-form {
         background-color: #f9f9f9;
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -258,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-bottom: 30px;
     }
 
-    .users-form h2 {
+    .classes-form h2 {
         margin-top: 0;
         margin-bottom: 20px;
     }
@@ -274,8 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         color: #333;
     }
 
-    .form-group input,
-    .form-group select {
+    .form-group input {
         width: 100%;
         padding: 8px 12px;
         border: 1px solid #ddd;
@@ -284,11 +248,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         box-sizing: border-box;
     }
 
-    .users-table {
+    .classes-table {
         margin-top: 30px;
     }
 
-    .users-table h2 {
+    .classes-table h2 {
         margin-bottom: 15px;
     }
 
@@ -424,11 +388,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 
 <script>
-    function openEditModal(userId, username, role) {
-        document.getElementById('editUserId').value = userId;
-        document.getElementById('editUsername').value = username;
-        document.getElementById('editRole').value = role;
-        document.getElementById('editPassword').value = '';
+    function openEditModal(classId, name) {
+        document.getElementById('editClassId').value = classId;
+        document.getElementById('editName').value = name;
         document.getElementById('editModal').classList.remove('hidden');
     }
 

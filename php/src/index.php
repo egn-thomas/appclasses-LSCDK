@@ -83,6 +83,10 @@ if ($page === 'login') {
     $pageTitle = 'Dashboard';
 } elseif ($page === 'users') {
     $pageTitle = 'Gestion des Utilisateurs';
+} elseif ($page === 'classes') {
+    $pageTitle = 'Gestion des Classes';
+} elseif ($page === 'options') {
+    $pageTitle = 'Gestion des Options';
 } else {
     $pageTitle = 'Page introuvable';
 }
@@ -110,6 +114,16 @@ switch ($page) {
     case 'users':
         $title = 'Gestion des Utilisateurs';
         require __DIR__ . '/pages/users.php';
+        break;
+
+    case 'classes':
+        $title = 'Gestion des Classes';
+        require __DIR__ . '/pages/classes.php';
+        break;
+
+    case 'options':
+        $title = 'Gestion des Options';
+        require __DIR__ . '/pages/options.php';
         break;
 
     default:
