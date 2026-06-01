@@ -8,6 +8,7 @@ const classRoutes = require("./routes/classRoutes");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const optionRoutes = require("./routes/optionRoutes");
+const studentRoutes = require("./routes/studentRoutes");
 const { requireAuth } = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const bcrypt = require("bcrypt");
@@ -48,6 +49,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", requireAuth, userRoutes);
 app.use("/api/classes", requireAuth, classRoutes);
 app.use("/api/options", requireAuth, optionRoutes);
+app.use("/api/students", requireAuth, studentRoutes);
 
 app.get("/", (req, res) => {
   res.json({ service: "appclasses-api", status: "running" });

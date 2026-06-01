@@ -87,6 +87,8 @@ if ($page === 'login') {
     $pageTitle = 'Gestion des Classes';
 } elseif ($page === 'options') {
     $pageTitle = 'Gestion des Options';
+} elseif ($page === 'students') {
+    $pageTitle = 'Gestion des Élèves';
 } else {
     $pageTitle = 'Page introuvable';
 }
@@ -124,6 +126,11 @@ switch ($page) {
     case 'options':
         $title = 'Gestion des Options';
         require __DIR__ . '/pages/options.php';
+        break;
+
+    case 'students':
+        $title = 'Gestion des Élèves';
+        require __DIR__ . '/pages/students.php';
         break;
 
     default:
