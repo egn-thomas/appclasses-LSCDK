@@ -19,6 +19,7 @@ if ($userResponse['status'] === 200) {
         <a class="nav-link" href="/?page=classes">Classes</a>
         <a class="nav-link" href="/?page=options">Options</a>
     <?php endif; ?>
+    <a class="nav-link" href="/?page=students">Élèves</a>
     <form class="inline-form" method="POST" action="/?page=logout">
         <button class="btn secondary btn-compact" type="submit">Se déconnecter</button>
     </form>
