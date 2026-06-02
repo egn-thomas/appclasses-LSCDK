@@ -689,6 +689,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
 </style>
 
 <script>
+    // Configuration API
+    const API_URL = '<?php echo API_URL; ?>';
+
     function toggleVis() { document.getElementById('colPanel').classList.toggle('hidden') }
     document.querySelectorAll('.col-tog').forEach(t => { t.addEventListener('change', function () { document.querySelectorAll('.' + this.dataset.col).forEach(e => e.style.display = this.checked ? '' : 'none') }) });
     document.querySelectorAll('.st-inp, .st-opt').forEach(i => { i.dataset.orig = i.type === 'checkbox' ? (i.checked ? '1' : '0') : i.value; i.addEventListener('change', chk) });
@@ -721,7 +724,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
         const formData = new FormData();
         formData.append('file', file);
 
-        fetch('http://localhost:3000/api/upload/upload', {
+        fetch(API_URL + '/api/upload/upload', {
             method: 'POST',
             body: formData,
             credentials: 'include'
@@ -758,7 +761,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
     function showClassSelectionStep() {
         // Charger les classes si nécessaire
         if (classOpts.length === 0) {
-            fetch('http://localhost:3000/api/classes', { credentials: 'include' })
+            fetch(API_URL + '/api/classes', { credentials: 'include' })
                 .then(r => r.json())
                 .then(data => {
                     classOpts = (data.classes || []).map(c => ({ name: c.name, id: c._id }));
@@ -828,8 +831,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
 
         // Charger les classes et options
         Promise.all([
-            fetch('http://localhost:3000/api/classes', { credentials: 'include' }),
-            fetch('http://localhost:3000/api/options', { credentials: 'include' })
+            fetch(API_URL + '/api/classes', { credentials: 'include' }),
+            fetch(API_URL + '/api/options', { credentials: 'include' })
         ]).then(resps => {
             if (!resps[0].ok || !resps[1].ok) throw new Error('Erreur chargement');
             return Promise.all(resps.map(r => r.json()));
@@ -926,7 +929,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
 
     function createClassIfNotExists(className) {
         console.log('Attempting to create class:', className);
-        return fetch('http://localhost:3000/api/classes', {
+        return fetch(API_URL + '/api/classes', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -962,7 +965,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
 
     function createOptionIfNotExists(optionName) {
         console.log('Attempting to create option:', optionName);
-        return fetch('http://localhost:3000/api/options', {
+        return fetch(API_URL + '/api/options', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -1017,8 +1020,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
             console.log('All creations done:', results);
             // Recharger les classes et options
             return Promise.all([
-                fetch('http://localhost:3000/api/classes', { credentials: 'include' }),
-                fetch('http://localhost:3000/api/options', { credentials: 'include' })
+                fetch(API_URL + '/api/classes', { credentials: 'include' }),
+                fetch(API_URL + '/api/options', { credentials: 'include' })
             ]);
         }).then(resps => {
             if (!resps[0].ok || !resps[1].ok) {
