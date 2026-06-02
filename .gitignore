@@ -4,6 +4,10 @@
 *.pem
 *.key
 
+*.csv
+*.xlsx
+*.sql
+
 # Dépendances locales
 vendor/
 node_modules/
