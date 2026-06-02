@@ -43,17 +43,11 @@ exports.createStudent = async (req, res) => {
       options,
     } = req.body;
 
-    // Validation basique
-    if (
-      !className ||
-      !firstName ||
-      !lastName ||
-      !gender ||
-      !age ||
-      !dateOfBirth ||
-      !formation
-    ) {
-      return res.status(400).json({ error: "Tous les champs sont requis" });
+    // Validation basique - seulement les champs requis
+    if (!className || !firstName || !lastName) {
+      return res
+        .status(400)
+        .json({ error: "Classe, Prénom et Nom sont requis" });
     }
 
     const student = new Student({

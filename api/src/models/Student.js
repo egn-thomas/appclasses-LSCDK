@@ -16,18 +16,19 @@ const studentSchema = new mongoose.Schema({
   gender: {
     type: String,
     enum: ["M", "F", "Autre"],
-    required: true,
+    required: false,
   },
   age: {
     type: Number,
-    required: true,
+    required: false,
   },
   dateOfBirth: {
     type: Date,
-    required: true,
+    required: false,
   },
   formation: {
     type: String,
+    required: false,
     required: true,
   },
   options: {
