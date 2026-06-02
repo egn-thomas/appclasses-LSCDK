@@ -156,10 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
         <div class="section-header">
             <h2>Liste des élèves</h2>
             <div class="header-btns">
-                <?php if ($canEdit): ?><button class="btn primary btn-compact" onclick="openImport()">➕
-                        Importer</button><?php endif; ?>
-                <?php if ($canEdit): ?><button class="btn secondary btn-compact" onclick="toggleVis()">⚙️
-                        Colonnes</button><?php endif; ?>
+                <?php if ($canEdit): ?><button class="btn primary btn-compact" onclick="openImport()">Importer un tableau</button><?php endif; ?>
+                <?php if ($canEdit): ?><button class="btn secondary btn-compact" onclick="toggleVis()">Filtrer les colonnes</button><?php endif; ?>
             </div>
         </div>
 
