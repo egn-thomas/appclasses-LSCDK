@@ -690,7 +690,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
 
 <script>
     // Configuration API
-    const API_URL = '<?php echo API_URL; ?>';
+    // En développement local: utilise http://localhost:3000
+    // En production: utilise /api (proxié par le reverse proxy)
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_URL = isLocalhost ? 'http://localhost:3000' : '/api';
 
     function toggleVis() { document.getElementById('colPanel').classList.toggle('hidden') }
     document.querySelectorAll('.col-tog').forEach(t => { t.addEventListener('change', function () { document.querySelectorAll('.' + this.dataset.col).forEach(e => e.style.display = this.checked ? '' : 'none') }) });
