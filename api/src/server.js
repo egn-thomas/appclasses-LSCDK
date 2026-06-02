@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const optionRoutes = require("./routes/optionRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 const { requireAuth } = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const bcrypt = require("bcrypt");
@@ -22,7 +23,11 @@ const MONGO_URI =
 
 app.use(
   cors({
-    origin: process.env.FRONT_URL || "http://localhost",
+    origin: [
+      "http://localhost",
+      "http://localhost:8080",
+      process.env.FRONT_URL || "http://localhost",
+    ],
     credentials: true,
   }),
 );
@@ -50,6 +55,7 @@ app.use("/api/users", requireAuth, userRoutes);
 app.use("/api/classes", requireAuth, classRoutes);
 app.use("/api/options", requireAuth, optionRoutes);
 app.use("/api/students", requireAuth, studentRoutes);
+app.use("/api/upload", uploadRoutes);
 
 app.get("/", (req, res) => {
   res.json({ service: "appclasses-api", status: "running" });
