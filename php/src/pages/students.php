@@ -727,7 +727,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
         const formData = new FormData();
         formData.append('file', file);
 
-        fetch(API_URL + '/api/upload/upload', {
+        fetch(API_URL + '/upload/upload', {
             method: 'POST',
             body: formData,
             credentials: 'include'
@@ -764,7 +764,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
     function showClassSelectionStep() {
         // Charger les classes si nécessaire
         if (classOpts.length === 0) {
-            fetch(API_URL + '/api/classes', { credentials: 'include' })
+            fetch(API_URL + '/classes', { credentials: 'include' })
                 .then(r => r.json())
                 .then(data => {
                     classOpts = (data.classes || []).map(c => ({ name: c.name, id: c._id }));
@@ -834,8 +834,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
 
         // Charger les classes et options
         Promise.all([
-            fetch(API_URL + '/api/classes', { credentials: 'include' }),
-            fetch(API_URL + '/api/options', { credentials: 'include' })
+            fetch(API_URL + '/classes', { credentials: 'include' }),
+            fetch(API_URL + '/options', { credentials: 'include' })
         ]).then(resps => {
             if (!resps[0].ok || !resps[1].ok) throw new Error('Erreur chargement');
             return Promise.all(resps.map(r => r.json()));
@@ -932,7 +932,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
 
     function createClassIfNotExists(className) {
         console.log('Attempting to create class:', className);
-        return fetch(API_URL + '/api/classes', {
+        return fetch(API_URL + '/classes', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -968,7 +968,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
 
     function createOptionIfNotExists(optionName) {
         console.log('Attempting to create option:', optionName);
-        return fetch(API_URL + '/api/options', {
+        return fetch(API_URL + '/options', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -1023,8 +1023,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit && isset($_POST['action'])
             console.log('All creations done:', results);
             // Recharger les classes et options
             return Promise.all([
-                fetch(API_URL + '/api/classes', { credentials: 'include' }),
-                fetch(API_URL + '/api/options', { credentials: 'include' })
+                fetch(API_URL + '/classes', { credentials: 'include' }),
+                fetch(API_URL + '/options', { credentials: 'include' })
             ]);
         }).then(resps => {
             if (!resps[0].ok || !resps[1].ok) {
