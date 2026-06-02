@@ -24,11 +24,11 @@ jobs:
             cd /opt/appclasses-LSCDK
 
             # 1. Récupérer le dernier code de l'app
-            sudo git pull origin prod
+            git pull origin prod
 
             # 2. Reconstruire et relancer l'API et Mongo
-            sudo docker compose build api
-            sudo docker compose up -d api mongo
+            docker compose build api mongo php
+            docker compose up -d
 
             # 3. Mettre à jour Prisma dans le conteneur et exécuter le Seed
-            sudo docker compose exec -T api npx prisma db push
+            docker compose exec -T api npx prisma db push

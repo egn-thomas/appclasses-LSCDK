@@ -1,3 +1,2 @@
 <?php
-
-echo "Hello, World! Le workflow fonctionne !";
+require_once __DIR__ . '/src/index.php';

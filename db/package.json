@@ -1,0 +1,9 @@
+{
+  "name": "appclasses-db",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Utilitaires MongoDB pour appclasses-LSCDK",
+  "scripts": {
+    "info": "echo 'Ce dossier contient les utilitaires MongoDB. Utilisez l'API pour accéder à la base.'"
+  }
+}
